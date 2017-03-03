@@ -15,14 +15,17 @@ class ViewController: UIViewController
     
     var userIsInMiddleOfTypingANumber: Bool = false
     
+    var brain = CalculatorBrain()
+    
+    
     @IBAction func appendDigit(_ sender: UIButton) {
         let digit = sender.currentTitle!
         if userIsInMiddleOfTypingANumber {
-//            if display.text == "π"{
-//                display.text = String(M_PI)
-//            }else {
+            if display.text == "π"{
+                display.text = String(M_PI)
+            }else {
                 display.text = display.text! + digit
-//            }
+            }
         }else{
             display.text = digit
             userIsInMiddleOfTypingANumber = true
@@ -33,47 +36,35 @@ class ViewController: UIViewController
     }
     
     @IBAction func operate(_ sender: UIButton) {
-        let operation = sender.currentTitle!
         if userIsInMiddleOfTypingANumber {
             enter()
         }
-        switch operation {
-            case "×": performOperation{ $0 * $1 }
-            case "÷": performOperation{ $1 / $0 }
-            case "+": performOperation{ $0 + $1 }
-            case "−": performOperation{ $1 - $0 }
-            case "√": performOperation2{ sqrt($0) }
-            case "sin": performOperation2{ sin($0) }
-            case "cos": performOperation2{ cos($0) }
-            default: break
+        if let operation = sender.currentTitle{
+            if let result = brain.performOperand(symbol: operation){
+                displayValue = result
+            }else{
+                displayValue = 0
+            }
         }
     }
     
-    func performOperation(operation: (Double, Double) -> Double) {
-        if operandStack.count >= 2 {
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    func performOperation2(operation: (Double) -> Double) {
-        if operandStack.count >= 1 {
-            displayValue = operation(operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    var operandStack = Array<Double>()
     
     @IBAction func enter() {
         userIsInMiddleOfTypingANumber = false
-        operandStack.append(displayValue)
-        print("operandStack = \(operandStack)")
+        if let result = brain.pushOperand(operand: displayValue){
+            displayValue = result
+        }else {
+            displayValue = 0
+        }
     }
     
     var displayValue: Double{
         get{
-            return NumberFormatter().number(from: display.text!)!.doubleValue
+            if display.text == "π" {
+                return Double(M_PI)
+            }else{
+                return NumberFormatter().number(from: display.text!)!.doubleValue
+            }
         }
         set{
            display.text = "\(newValue)"
